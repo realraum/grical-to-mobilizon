@@ -5,7 +5,13 @@
   "type": "module",
   "dependencies": {
     "graphql-request": "^6.1.0",
+    "graphql-tag": "https://ffgraz.mkg20001.io/graphl-tag-w-esm.tgz",
     "ical.js": "^1.5.0",
+    "node-esm-loader": "^0.2.5",
     "showdown": "^2.1.0"
+  },
+  "scripts": {
+    "start": "node --experimental-loader node-esm-loader index.js",
+    "new-session": "node --experimental-loader node-esm-loader new-session.js"
   }
 }

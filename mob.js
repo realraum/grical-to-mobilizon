@@ -5,10 +5,10 @@ import { writeFile } from 'fs/promises'
 
 const endpoint = Config.mobilizon
 
-import { REFRESH_MUTATION, EVENT_LIST, EVENT_ADD } from './graph.js'
+import { Refresh, EventList, EventAdd } from './mobilizon.graphql'
 
 const { refreshToken: refresh } = await request(
-  endpoint, REFRESH_MUTATION,
+  endpoint, Refresh,
   { refreshToken: Session.refreshToken }
 )
 
@@ -22,7 +22,7 @@ const client = new GraphQLClient(endpoint, {
 })
 
 export async function getEvents() {
-  return await client.request(EVENT_LIST)
+  return await client.request(EventList)
 }
 
 export async function addEvent() {
