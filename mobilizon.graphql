@@ -33,6 +33,7 @@ query EventList {
         beginsOn,
         endsOn,
         status,
+        onlineAddress,
         tags {
           title
         },

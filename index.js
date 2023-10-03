@@ -29,10 +29,8 @@ const gricalToMob = {}
 
 for (const event of mobEvents.group.organizedEvents.elements) {
   console.log(event)
-  const m = event.description.match(/grical%(.+)%/)
-  if (m) {
-    const id = m[1]
-    gricalToMob[id] = event.id
+  if (event.onlineAddress && event.onlineAddress.includes('grical')) {
+    gricalToMob[event.onlineAddress] = event.id
   }
 }
 
@@ -45,7 +43,7 @@ for (const [, event] of events) {
   if (categories.indexOf('r3') !== -1) {
     console.log(event)
 
-    const uid = getVal(event, 'uid')
+    const url = getVal(event, 'url')
 
     const beginsOn = getVal(event, 'dtstart')
     const endsOn = getVal(event, 'dtend')
@@ -64,8 +62,6 @@ for (const [, event] of events) {
       }
     }
 
-    summary += `<p hidden>grical%${uid}%</p>`
-
     const eventData = {
       beginsOn,
       endsOn,
@@ -77,10 +73,8 @@ for (const [, event] of events) {
 
     console.log(eventData)
 
-    const res = await addOrModify(gricalToMob[uid], eventData)
+    const res = await addOrModify(gricalToMob[url], eventData)
 
     console.log(res)
   }
 }
-
-console.log(Config)
