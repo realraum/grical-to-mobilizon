@@ -12,6 +12,10 @@
   },
   "scripts": {
     "start": "node --experimental-loader node-esm-loader index.js",
-    "new-session": "node --experimental-loader node-esm-loader new-session.js"
+    "new-session": "node --experimental-loader node-esm-loader new-session.js",
+    "dev": "nodemon --experimental-loader node-esm-loader -i session.json index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }

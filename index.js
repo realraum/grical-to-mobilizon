@@ -1,7 +1,7 @@
 import pkg from 'ical.js';
 const { parse } = pkg;
 
-import { getEvents } from './mob.js'
+import { getEvents, addOrModify } from './mob.js'
 import showdown from 'showdown'
 
 import Config from './config.json' assert { type: "json" }
@@ -32,18 +32,13 @@ for (const event of mobEvents.group.organizedEvents.elements) {
   const m = event.description.match(/grical%(.+)%/)
   if (m) {
     const id = m[1]
-    gricalToMob[id] = event.uuid
+    gricalToMob[id] = event.id
   }
 }
 
-const predefinedSummary = [
-  [/Mitgliedertreffen/, `
-    <p><strong>Worum geht’s?</strong></p><p>Der realraum ist ein Treffpunkt zum Basteln, Experimentieren und vielem mehr – ein Hackerspace für die Bereiche Software, Hardware, Computer und Elektronik, Molekularbiologie und Chemie. <a target="_blank" rel="noopener noreferrer ugc" href="https://wp.realraum.at/realraum/">Lies mehr über uns</a></p>
-  `],
-  [/Funkfeuer/i, `
-    <p>Funkfeuer Graz ist ein freies, experimentelles Funk-Netzwerk in Graz. Funkfeuer ist offen für Jeden und Jede, der/die Interesse hat und bereit ist mitzuarbeiten. Funkfeuer ist ein nicht reguliertes Netzwerk, das den digitalen Graben zwischen den sozialen Schichten überbrückt und Infrastruktur und Wissen zur Verfügung zu stellen.</p><p>Funkfeuer wird von computerbegeisterten Menschen mit unterschiedlicher Motivation und Interessen betrieben. Das Projekt verfolgt keine kommerziellen Interessen.</p><p>Funkfeuer ist auch ein Soziales Experiment denn es versucht Arbeitsweisen aus der Open Source Welt in einem gesellschaftlichen Kontext zu etablieren.</p><p>Es gibt keine Zentrale Institution, wir bauen uns unser Netzwerk selber!</p>
-  `]
-]
+const predefinedSummaries = Config.predefinedSummaries.map(([regex, sum]) => {
+  return [new RegExp(regex, 'i'), sum]
+})
 
 for (const [, event] of events) {
   const categories = getKey(event, 'categories')
@@ -51,14 +46,19 @@ for (const [, event] of events) {
     console.log(event)
 
     const uid = getVal(event, 'uid')
-    const start = getVal(event, 'dtstart')
-    const end = getVal(event, 'dtend')
-    let summary = getVal(event, 'description')
+
+    const beginsOn = getVal(event, 'dtstart')
+    const endsOn = getVal(event, 'dtend')
+    const gricalUrl = getVal(event, 'url')
+
+    const tags = (getKey(event, 'categories') || []).slice(3)
+
     const title = getVal(event, 'summary')
+    let summary = getVal(event, 'description')
 
     summary = mdConverter.makeHtml(summary)
 
-    for (const [regex, predef] of predefinedSummary) {
+    for (const [regex, predef] of predefinedSummaries) {
       if (title.match(regex)) {
         summary = predef
       }
@@ -66,15 +66,21 @@ for (const [, event] of events) {
 
     summary += `<p hidden>grical%${uid}%</p>`
 
-    console.log({
-      beginsOn: start,
-      endsOn: end,
+    const eventData = {
+      beginsOn,
+      endsOn,
+      gricalUrl,
       title,
-      summary
-    })
+      tags,
+      description: summary,
+    }
+
+    console.log(eventData)
+
+    const res = await addOrModify(gricalToMob[uid], eventData)
+
+    console.log(res)
   }
 }
 
-import { inspect } from 'util'
-
-// console.log(inspect(mobEvents, { depth: null, colors: true }))
+console.log(Config)

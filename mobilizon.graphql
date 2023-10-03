@@ -6,6 +6,10 @@ mutation Login($email: String!, $password: String!) {
       id
       email
       role
+      defaultActor {
+        id
+        name
+      }
     }
   }
 }
@@ -46,14 +50,33 @@ query EventList {
   }
 }
 
-mutation EventAdd($title: String!, $description: String!, $tags: [String]!, $gricalUrl: String!) {
+mutation EventAdd($organizerActorId: ID!, $title: String!, $description: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!) {
   createEvent(
+    organizerActorId: $organizerActorId
     title: $title
     description: $description
     tags: $tags
+    beginsOn: $beginsOn
+    endsOn: $endsOn
     onlineAddress: $gricalUrl
     attributedToId: "6633"
-    eventVisibility: "PUBLIC"
+    visibility: PUBLIC
+  ) {
+    id
+  }
+}
+
+mutation EventModify($eventId: ID!, $title: String!, $description: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!) {
+  updateEvent(
+    eventId: $eventId
+    title: $title
+    description: $description
+    tags: $tags
+    beginsOn: $beginsOn
+    endsOn: $endsOn
+    onlineAddress: $gricalUrl
+    attributedToId: "6633"
+    visibility: PUBLIC
   ) {
     id
   }
