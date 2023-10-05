@@ -23,12 +23,18 @@ function getVal(vevent, key) {
   return (val = getKey(vevent, key)) && val[3]
 }
 
-const mobEvents = await getEvents()
+const eventsMob = []
+const username2id = {}
+
+for (const username of Config.usernames) {
+  const res = await getEvents(username)
+  username2id[username] = res.group.id
+  eventsMob.push(...res.group.organizedEvents.elements)
+}
 
 const gricalToMob = {}
 
-for (const event of mobEvents.group.organizedEvents.elements) {
-  console.log(event)
+for (const event of eventsMob) {
   if (event.onlineAddress && event.onlineAddress.includes('grical')) {
     gricalToMob[event.onlineAddress] = event.id
   }
@@ -41,7 +47,7 @@ const predefined = Config.predefined.map(([regex, sum]) => {
 for (const [, event] of events) {
   const categories = getKey(event, 'categories')
   if (categories.indexOf('r3') !== -1) {
-    console.log(event)
+    console.log('ical: %O', event)
 
     const url = getVal(event, 'url')
 
@@ -57,7 +63,7 @@ for (const [, event] of events) {
     summary = mdConverter.makeHtml(summary)
 
     const eventData = {
-      attributedToId: Config.id,
+      organizer: Config.usernames[0],
       addressID: Config.addressID,
       beginsOn,
       endsOn,
@@ -73,7 +79,9 @@ for (const [, event] of events) {
       }
     }
 
-    console.log(eventData)
+    eventData.organizer = username2id[eventData.organizer]
+
+    console.log('mobi: %o', eventData)
 
     const res = await addOrModify(gricalToMob[url], eventData)
 

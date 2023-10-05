@@ -21,8 +21,9 @@ mutation Refresh($refreshToken: String!) {
   }
 }
 
-query EventList {
-  group(preferredUsername: "realraum") {
+query EventList($username: String!) {
+  group(preferredUsername: $username) {
+    id
     organizedEvents(limit: 100000) {
       elements {
         id,
@@ -51,7 +52,7 @@ query EventList {
   }
 }
 
-mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!, $picture: MediaInput, $attributedToId: ID!, $addressID: ID!) {
+mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!, $picture: MediaInput, $organizer: ID!, $addressID: ID!) {
   createEvent(
     organizerActorId: $organizerActorId
     title: $title
@@ -60,7 +61,7 @@ mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $t
     beginsOn: $beginsOn
     endsOn: $endsOn
     onlineAddress: $gricalUrl
-    attributedToId: $attributedToId
+    attributedToId: $organizer
     visibility: PUBLIC
     picture: $picture
     physicalAddress: {
@@ -71,7 +72,7 @@ mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $t
   }
 }
 
-mutation EventModify($eventId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!, $picture: MediaInput, $attributedToId: ID!, $addressID: ID!) {
+mutation EventModify($eventId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!, $picture: MediaInput, $organizer: ID!, $addressID: ID!) {
   updateEvent(
     eventId: $eventId
     title: $title
@@ -80,7 +81,7 @@ mutation EventModify($eventId: ID!, $title: String!, $summary: String!, $tags: [
     beginsOn: $beginsOn
     endsOn: $endsOn
     onlineAddress: $gricalUrl
-    attributedToId: $attributedToId
+    attributedToId: $organizer
     visibility: PUBLIC
     picture: $picture
     physicalAddress: {
