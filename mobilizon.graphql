@@ -21,10 +21,10 @@ mutation Refresh($refreshToken: String!) {
   }
 }
 
-query EventList($username: String!) {
+query EventList($username: String! $now: DateTime!) {
   group(preferredUsername: $username) {
     id
-    organizedEvents(limit: 100000) {
+    organizedEvents(limit: 100000 afterDatetime: $now) {
       elements {
         id,
         uuid,

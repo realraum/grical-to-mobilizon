@@ -23,7 +23,8 @@ const client = new GraphQLClient(endpoint, {
 
 export async function getEvents(username) {
   return await client.request(EventList, {
-    username
+    username,
+    now: new Date()
   })
 }
 

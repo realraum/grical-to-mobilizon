@@ -44,6 +44,8 @@ const predefined = Config.predefined.map(([regex, sum]) => {
   return [new RegExp(regex, 'i'), sum]
 })
 
+const now = Date.now()
+
 for (const [, event] of events) {
   const categories = getKey(event, 'categories')
   if (categories.indexOf('r3') !== -1) {
@@ -54,6 +56,10 @@ for (const [, event] of events) {
     const beginsOn = getVal(event, 'dtstart')
     const endsOn = getVal(event, 'dtend')
     const gricalUrl = getVal(event, 'url')
+
+    if (new Date(beginsOn).getTime() <= now) {
+      continue
+    }
 
     const tags = (getKey(event, 'categories') || []).slice(3)
 
