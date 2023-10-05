@@ -34,7 +34,7 @@ for (const event of mobEvents.group.organizedEvents.elements) {
   }
 }
 
-const predefinedSummaries = Config.predefinedSummaries.map(([regex, sum]) => {
+const predefined = Config.predefined.map(([regex, sum]) => {
   return [new RegExp(regex, 'i'), sum]
 })
 
@@ -56,19 +56,21 @@ for (const [, event] of events) {
 
     summary = mdConverter.makeHtml(summary)
 
-    for (const [regex, predef] of predefinedSummaries) {
-      if (title.match(regex)) {
-        summary = predef
-      }
-    }
-
     const eventData = {
+      attributedToId: Config.id,
+      addressID: Config.addressID,
       beginsOn,
       endsOn,
       gricalUrl,
       title,
       tags,
-      description: summary,
+      summary,
+    }
+
+    for (const [regex, predef] of predefined) {
+      if (title.match(regex)) {
+        Object.assign(eventData, predef)
+      }
     }
 
     console.log(eventData)

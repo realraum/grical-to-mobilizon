@@ -51,33 +51,41 @@ query EventList {
   }
 }
 
-mutation EventAdd($organizerActorId: ID!, $title: String!, $description: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!) {
+mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!, $picture: MediaInput, $attributedToId: ID!, $addressID: ID!) {
   createEvent(
     organizerActorId: $organizerActorId
     title: $title
-    description: $description
+    description: $summary
     tags: $tags
     beginsOn: $beginsOn
     endsOn: $endsOn
     onlineAddress: $gricalUrl
-    attributedToId: "6633"
+    attributedToId: $attributedToId
     visibility: PUBLIC
+    picture: $picture
+    physicalAddress: {
+      id: $addressID
+    }
   ) {
     id
   }
 }
 
-mutation EventModify($eventId: ID!, $title: String!, $description: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!) {
+mutation EventModify($eventId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!, $picture: MediaInput, $attributedToId: ID!, $addressID: ID!) {
   updateEvent(
     eventId: $eventId
     title: $title
-    description: $description
+    description: $summary
     tags: $tags
     beginsOn: $beginsOn
     endsOn: $endsOn
     onlineAddress: $gricalUrl
-    attributedToId: "6633"
+    attributedToId: $attributedToId
     visibility: PUBLIC
+    picture: $picture
+    physicalAddress: {
+      id: $addressID
+    }
   ) {
     id
   }
