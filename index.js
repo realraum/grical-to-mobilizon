@@ -48,7 +48,8 @@ const now = Date.now()
 
 for (const [, event] of events) {
   const categories = getKey(event, 'categories')
-  if (categories.indexOf('r3') !== -1) {
+  if (true) {
+  // if (categories.indexOf('r3') !== -1) {
     console.log('ical: %O', event)
 
     const url = getVal(event, 'url')
