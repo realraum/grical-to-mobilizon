@@ -52,7 +52,7 @@ query EventList($username: String! $now: DateTime!) {
   }
 }
 
-mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!, $picture: MediaInput, $organizer: ID!, $addressID: ID!) {
+mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime, $gricalUrl: String!, $picture: MediaInput, $organizer: ID!, $addressID: ID!) {
   createEvent(
     organizerActorId: $organizerActorId
     title: $title
@@ -72,7 +72,7 @@ mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $t
   }
 }
 
-mutation EventModify($eventId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime!, $gricalUrl: String!, $picture: MediaInput, $organizer: ID!, $addressID: ID!) {
+mutation EventModify($eventId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime, $gricalUrl: String!, $picture: MediaInput, $organizer: ID!, $addressID: ID!) {
   updateEvent(
     eventId: $eventId
     title: $title

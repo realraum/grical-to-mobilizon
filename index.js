@@ -3,6 +3,7 @@ const { parse } = pkg;
 
 import { getEvents, addOrModify } from './mob.js'
 import showdown from 'showdown'
+import { DateTime } from 'luxon'
 
 import Config from './config.json' assert { type: "json" }
 
@@ -54,18 +55,31 @@ for (const [, event] of events) {
 
     const url = getVal(event, 'url')
 
-    const beginsOn = getVal(event, 'dtstart')
-    const endsOn = getVal(event, 'dtend')
-    const gricalUrl = getVal(event, 'url')
+    let beginsOn = getVal(event, 'dtstart')
+    let endsOn = getVal(event, 'dtend')
 
     if (new Date(beginsOn).getTime() <= now) {
       continue
     }
 
+    // cursed date-time
+    if (!endsOn && beginsOn.length === 10) { // event is a single day long
+      endsOn = beginsOn
+    }
+
+    if (beginsOn.length === 10) { // all-day event, set start-of-day
+      beginsOn = DateTime.fromJSDate(new Date(beginsOn)).startOf('day').toString()
+    }
+
+    if (endsOn && endsOn.length === 10) { // all-day event, extend until end-of-day
+      endsOn = DateTime.fromJSDate(new Date(endsOn)).endOf('day').toString()    
+    }
+
+    const gricalUrl = getVal(event, 'url')
     const tags = (getKey(event, 'categories') || []).slice(3)
 
     const title = getVal(event, 'summary')
-    let summary = getVal(event, 'description')
+    let summary = getVal(event, 'description') || ''
 
     summary = mdConverter.makeHtml(summary)
 
