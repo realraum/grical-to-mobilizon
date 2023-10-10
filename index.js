@@ -7,6 +7,9 @@ import { DateTime } from 'luxon'
 
 import Config from './config.json' assert { type: "json" }
 
+import { JSDOM } from 'jsdom'
+import jQuery from 'jquery'
+
 const mdConverter = new showdown.Converter()
 
 const req = await fetch(Config.grical)
@@ -98,6 +101,18 @@ for (const [, event] of events) {
       if (title.match(regex)) {
         Object.assign(eventData, predef)
       }
+    }
+
+    const gricalHTML = await (await fetch(gricalUrl)).text()
+    const gricalDOM = new JSDOM(gricalHTML)
+    const gricalURLs = jQuery(gricalDOM.window)('.urls').find('a').toArray()
+
+    if (gricalURLs.length) {
+      eventData.summary += '<h2>Links</h2><ul>'
+      for (const url of gricalURLs) {
+        eventData.summary += '<li>' + url.outerHTML + '</li>'
+      }
+      eventData.summary += '</ul>'
     }
 
     eventData.organizer = username2id[eventData.organizer]
