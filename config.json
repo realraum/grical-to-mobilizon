@@ -3,6 +3,7 @@
     "realraum",
     "funkfeuer"
   ],
+  "defaultPicture": "38808",
   "addressID": "91",
   "mobilizon": "https://events.graz.social/api",
   "grical": "https://r3.at/events.ical",

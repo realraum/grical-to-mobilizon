@@ -95,6 +95,7 @@ for (const [, event] of events) {
       title,
       tags,
       summary,
+      picture: { mediaId: Config.defaultPicture }
     }
 
     for (const [regex, predef] of predefined) {
