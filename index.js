@@ -1,7 +1,7 @@
 import pkg from 'ical.js';
 const { parse } = pkg;
 
-import { getEvents, addOrModify } from './mob.js'
+import { getEvents, addOrModify, updateImage } from './mob.js'
 import showdown from 'showdown'
 import { DateTime } from 'luxon'
 
@@ -9,6 +9,7 @@ import Config from './config.json' assert { type: "json" }
 
 import { JSDOM } from 'jsdom'
 import jQuery from 'jquery'
+import { basename } from 'path'
 
 const mdConverter = new showdown.Converter()
 
@@ -37,10 +38,12 @@ for (const username of Config.usernames) {
 }
 
 const gricalToMob = {}
+const mobById = {}
 
 for (const event of eventsMob) {
   if (event.onlineAddress && event.onlineAddress.includes('grical')) {
     gricalToMob[event.onlineAddress] = event.id
+    mobById[event.id] = event
   }
 }
 
@@ -50,10 +53,12 @@ const predefined = Config.predefined.map(([regex, sum]) => {
 
 const now = Date.now()
 
+const extraMetaRegex = /#([a-z]+)=([^ ]+)/gmi
+
 for (const [, event] of events) {
   const categories = getKey(event, 'categories')
   if (true) {
-  // if (categories.indexOf('r3') !== -1) {
+    // if (categories.indexOf('r3') !== -1) {
     console.log('ical: %O', event)
 
     const url = getVal(event, 'url')
@@ -75,7 +80,7 @@ for (const [, event] of events) {
     }
 
     if (endsOn && endsOn.length === 10) { // all-day event, extend until end-of-day
-      endsOn = DateTime.fromJSDate(new Date(endsOn)).endOf('day').toString()    
+      endsOn = DateTime.fromJSDate(new Date(endsOn)).endOf('day').toString()
     }
 
     const gricalUrl = getVal(event, 'url')
@@ -83,6 +88,14 @@ for (const [, event] of events) {
 
     const title = getVal(event, 'summary')
     let summary = getVal(event, 'description') || ''
+
+    const extraMeta = {}
+
+    summary = summary.replace(extraMetaRegex, (_, key, value) => {
+      extraMeta[key] = value
+
+      return ''
+    })
 
     summary = mdConverter.makeHtml(summary)
 
@@ -104,9 +117,25 @@ for (const [, event] of events) {
       }
     }
 
-    const gricalHTML = await (await fetch(gricalUrl)).text()
+    let customBanner
+    if (extraMeta.banner) {
+      customBanner = extraMeta.banner
+      delete extraMeta.banner
+    }
+
+    Object.assign(eventData, extraMeta)
+
+    const gricalHTML = await(await fetch(gricalUrl)).text()
     const gricalDOM = new JSDOM(gricalHTML)
-    const gricalURLs = jQuery(gricalDOM.window)('.urls').find('a').toArray()
+    const $ = jQuery(gricalDOM.window)
+    const gricalURLs = $('.urls').find('a').toArray().map(url => {
+      if ($(url).text() == 'img') {
+        customBanner = url.href
+        return
+      }
+
+      return url
+    }).filter(Boolean)
 
     if (gricalURLs.length) {
       eventData.summary += '<h2>Links</h2><ul>'
@@ -118,10 +147,32 @@ for (const [, event] of events) {
 
     eventData.organizer = username2id[eventData.organizer]
 
+    const bannerName = customBanner && basename(new URL(customBanner).pathname)
+
+    if (customBanner) {
+      if (gricalToMob[url] && mobById[gricalToMob[url]].picture && mobById[gricalToMob[url]].picture.name === bannerName) {
+        // nothing todo, keep picture
+        eventData.picture = { mediaId: mobById[gricalToMob[url]].picture.id }
+      } else {
+        // remove existing to prevent mobilizion bug from replacing all pictures with same instance
+        eventData.picture = null
+      }
+    }
+
     console.log('mobi: %o', eventData)
 
     const res = await addOrModify(gricalToMob[url], eventData)
 
     console.log(res)
+
+    const id = res[Object.keys(res)[0]].id
+
+    if (customBanner && !eventData.picture) {
+      // upload image, add mediaId
+      const bannerName = basename(new URL(customBanner).pathname)
+      console.log('uploading banner on %o: %o from %o', id, bannerName, customBanner)
+      const blob = await(await fetch(customBanner)).blob()
+      console.log(await updateImage(blob, bannerName, customBanner, id))
+    }
   }
 }

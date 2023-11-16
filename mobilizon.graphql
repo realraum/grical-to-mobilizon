@@ -39,7 +39,8 @@ query EventList($username: String! $now: DateTime!) {
           title
         },
         picture {
-          url
+          id
+          name
         },
         physicalAddress {
           id,
@@ -89,5 +90,33 @@ mutation EventModify($eventId: ID!, $title: String!, $summary: String!, $tags: [
     }
   ) {
     id
+  }
+}
+
+mutation UploadImage($file: Upload!, $name: String!, $origURL: String!) {
+  uploadMedia(
+    name: $name
+    alt: $origURL
+    file: $file
+  ) {
+    id
+  }
+}
+
+mutation UpdateImage($eventId: ID!, $file: Upload!, $name: String!) {
+  updateEvent(
+    eventId: $eventId
+    picture: {
+      media: {
+        file: $file
+        name: $name
+      }
+    }
+  ) {
+    id
+    picture {
+      id
+      name
+    }
   }
 }
