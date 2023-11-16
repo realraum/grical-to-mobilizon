@@ -1,6 +1,6 @@
 # grical->mobilizion Sync
 
-Der grical->mobilizion Sync synchronisiert alle Ereignisse die auf der realraum.at Website bzw unter r3.at/ical verfügbar sind auf die entsprechenden Mobilizon Gruppen (@realraum, @funkfeuer)
+Der grical->mobilizion Sync synchronisiert alle Ereignisse die auf der realraum.at Website bzw unter https://r3.at/events.ical verfügbar sind auf die entsprechenden Mobilizon Gruppen (@realraum, @funkfeuer)
 
 # FAQ
 
