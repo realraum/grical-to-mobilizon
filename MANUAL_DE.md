@@ -30,6 +30,7 @@ Eine Vorlage ist folgendermaßen definiert
   "summary": "Alternative beschreibung nur für mobilizion",
   "picture": { "mediaId": "id vom bild das verwendet werden soll" },
   "picture": null, // entfernt default bild
+  "banner": "url", // verwendet url als banner
   "title": "Alternativer titel nur für mobilizon",
   "tags": ["alternative tags", "nur für mobilizion"],
 }]
