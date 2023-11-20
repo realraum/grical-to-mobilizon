@@ -16,6 +16,9 @@
     ["Funkfeuer", {
       "organizer": "funkfeuer",
       "summary": "<p>Funkfeuer Graz ist ein freies, experimentelles Funk-Netzwerk in Graz. Funkfeuer ist offen für Jeden und Jede, der/die Interesse hat und bereit ist mitzuarbeiten. Funkfeuer ist ein nicht reguliertes Netzwerk, das den digitalen Graben zwischen den sozialen Schichten überbrückt und Infrastruktur und Wissen zur Verfügung zu stellen.</p><p>Funkfeuer wird von computerbegeisterten Menschen mit unterschiedlicher Motivation und Interessen betrieben. Das Projekt verfolgt keine kommerziellen Interessen.</p><p>Funkfeuer ist auch ein Soziales Experiment denn es versucht Arbeitsweisen aus der Open Source Welt in einem gesellschaftlichen Kontext zu etablieren.</p><p>Es gibt keine Zentrale Institution, wir bauen uns unser Netzwerk selber!</p>"
+    }],
+    ["Party", {
+      "banner": "https://assets.chaos.social/media_attachments/files/110/119/885/243/280/684/original/e14ccbb0daf48808.jpeg"
     }]
   ]
 }
