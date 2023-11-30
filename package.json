@@ -9,8 +9,8 @@
     "graphql-tag": "https://ffgraz.mkg20001.io/graphl-tag-w-esm.tgz",
     "ical.js": "^1.5.0",
     "jquery": "^3.7.1",
-    "jsdom": "^22.1.0",
-    "luxon": "^3.4.3",
+    "jsdom": "^23.0.1",
+    "luxon": "^3.4.4",
     "node-esm-loader": "^0.2.5",
     "node-libcurl": "^3.0.0",
     "showdown": "^2.1.0"
