@@ -119,6 +119,8 @@ for (const [, event] of events) {
 
     Object.assign(eventData, extraMeta)
 
+    let customBanner
+
     const gricalHTML = await(await fetch(gricalUrl)).text()
     const gricalDOM = new JSDOM(gricalHTML)
     const $ = jQuery(gricalDOM.window)
@@ -141,7 +143,6 @@ for (const [, event] of events) {
 
     eventData.organizer = username2id[eventData.organizer]
 
-    let customBanner
     if (eventData.banner) {
       customBanner = eventData.banner
       delete eventData.banner
