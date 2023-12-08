@@ -21,6 +21,6 @@
     "dev": "SSLKEYLOGFILE=/tmp/keylog.txt nodemon --tls-keylog=/tmp/keylog.txt --experimental-loader node-esm-loader -i session.json index.js"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.2"
   }
 }
