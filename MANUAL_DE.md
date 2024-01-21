@@ -54,6 +54,6 @@ Falls das Event doch auf der Webseite ist, kann es sein das noch nicht synchroni
 
 # Limitationen
 
-Der Bot wird aktuell über @mkg20001's Account betrieben, daher kann er nur in Gruppen posten auf die @mkg20001 zugriff hat. Ebenfalls müssen diese in der config.json eingetragen sein.
+Der Bot wird aktuell über den Bot-Account @grical_realraum_at betrieben, daher kann er nur in Gruppen posten auf die @grical_realraum_at zugriff hat und Moderator ist. Ebenfalls müssen diese in der config.json eingetragen sein.
 
 Bei eigenen bannern: Ob das richtige banner verwendet wird, wird über den Dateinamen geprüft. D.h. wenn das banner vorher `https://website.com/image.php?photo=3` und nachher `https://website.com/image.php?photo=4` war, kann der bot das nicht unterscheiden, da beide Dateinamen `image.php` sind.
