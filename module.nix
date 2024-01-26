@@ -13,7 +13,7 @@ in
   config = mkIf (cfg.enable) {
     systemd.services.grical-to-mob = {
       startAt = "0 */6 * * *";
-      path = with pkgs; [ grical-to-mob ];
+      path = with pkgs; [ grical-to-mob nodejs ];
       script = ''
         cd $STATE_DIRECTORY
         grical-to-mob
