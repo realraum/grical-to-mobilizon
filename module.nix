@@ -14,7 +14,15 @@ in
     systemd.services.grical-to-mob = {
       startAt = "0 */6 * * *";
       path = with pkgs; [ grical-to-mob ];
-      script = "grical-to-mob";
+      script = ''
+        cd $STATE_DIRECTORY
+        grical-to-mob
+      '';
+      serviceConfig = {
+        StateDirectory = "grical-to-mob";
+        User = "grical-to-mob";
+        DynamicUser = true;
+      };
     };
   };
 }
