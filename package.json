@@ -6,12 +6,12 @@
   "dependencies": {
     "graphql": "^16.8.1",
     "graphql-request": "^6.1.0",
-    "graphql-tag": "https://ffgraz.mkg20001.io/graphl-tag-w-esm.tgz",
+    "graphql-tag": "github:mkg20001/graphql-esm#graphql",
     "ical.js": "^1.5.0",
     "jquery": "^3.7.1",
-    "jsdom": "^23.0.1",
+    "jsdom": "^24.0.0",
     "luxon": "^3.4.4",
-    "node-esm-loader": "^0.2.5",
+    "node-esm-loader": "^0.3.0",
     "node-libcurl": "^3.0.0",
     "showdown": "^2.1.0"
   },
@@ -21,6 +21,6 @@
     "dev": "SSLKEYLOGFILE=/tmp/keylog.txt nodemon --tls-keylog=/tmp/keylog.txt --experimental-loader node-esm-loader -i session.json index.js"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.3"
   }
 }

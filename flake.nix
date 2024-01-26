@@ -2,10 +2,9 @@
   description = "Changes the brightness of the damn quadrings";
 
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-  inputs.pnpm2nix.url = "github:nzbr/pnpm2nix-nzbr/main";
-  inputs.pnpm2nix.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.nix-node-package.url = "github:mkg20001/nix-node-package/master";
 
-  outputs = { self, nixpkgs, pnpm2nix }:
+  outputs = { self, nixpkgs, nix-node-package }:
 
     let
       supportedSystems = [ "x86_64-linux" ];
@@ -13,11 +12,11 @@
     in
 
     {
-      overlays.default = import ./overlay.nix;
+      overlays.default = import ./overlay.nix nix-node-package;
 
       defaultPackage = forAllSystems (system: (import nixpkgs {
         inherit system;
-        overlays = [ self.overlays.default pnpm2nix.overlays.default ];
+        overlays = [ self.overlays.default ];
       }).grical-to-mob);
 
       nixosModules = {

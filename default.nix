@@ -1,27 +1,29 @@
 { lib
-, mkPnpmPackage
+, mkNode
 , fetchFromGitHub
 , makeWrapper
 , nodejs
+, curl
+, nodePackages
 }:
 
-mkPnpmPackage rec {
-  name = "grical-to-mob";
-
-  src = ./.;
-
-  distDir = ".gitignore";
+mkNode {
+  root = ./.;
+  pnpmLock = ./pnpm-lock.yaml;
+  nodejs = nodejs;
+} rec {
+  buildInputs = [
+    curl.dev
+    curl.out
+  ];
 
   nativeBuildInputs = [
     makeWrapper
   ];
 
   postInstall = ''
-    rm -rf $out
-    cp -r $PWD $out
-    ls $out
-    makeWrapper ${nodejs.pkgs.pnpm} $out/bin/grical-to-mob \
-      --cwd $out \
-      --arg "start"
+    makeWrapper ${nodejs.pkgs.pnpm}/bin/pnpm $out/bin/grical-to-mob \
+      --chdir $out \
+      --add-flags "start"
   '';
 }
