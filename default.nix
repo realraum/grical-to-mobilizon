@@ -22,9 +22,9 @@ mkNode {
   ];
 
   postInstall = ''
-    makeWrapper ${nodejs.pkgs.pnpm}/bin/pnpm $out/bin/grical-to-mob \
+    makeWrapper ${nodejs}/bin/node $out/bin/grical-to-mob \
       --chdir $out \
-      --add-flags "start"
+      --add-flags "--experimental-loader node-esm-loader index.js"
     ln -s /var/lib/grical-to-mob/session.json $out/session.json
   '';
 }
