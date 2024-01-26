@@ -15,7 +15,7 @@ in
       startAt = "0 */6 * * *";
       path = with pkgs; [ grical-to-mob nodejs ];
       script = ''
-        cd $STATE_DIRECTORY
+        export HOME=$STATE_DIRECTORY
         grical-to-mob
       '';
       serviceConfig = {
