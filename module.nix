@@ -2,6 +2,9 @@
 
 with lib;
 
+let
+  cfg = config.services.grical-to-mob;
+in
 {
   options = {
     services.grical-to-mob.enable = mkEnableOption "grical-to-mob";
