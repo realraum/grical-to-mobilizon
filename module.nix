@@ -12,7 +12,7 @@ in
 
   config = mkIf (cfg.enable) {
     systemd.services.grical-to-mob = {
-      startAt = "0 */6 * * *";
+      startAt = "*-*-* */6:00:00";
       path = with pkgs; [ grical-to-mob nodejs ];
       script = ''
         export HOME=$STATE_DIRECTORY
