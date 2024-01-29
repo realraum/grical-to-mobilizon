@@ -6,7 +6,7 @@
   "defaultPicture": "38808",
   "addressID": "91",
   "mobilizon": "https://events.graz.social/api",
-  "grical": "https://grical.realraum.at/g/1/ical/",
+  "grical": "https://www.realraum.at/shmcache/grical_realraum_only.ical",
   "_predefinedHint": "Can contain: { organizer, summary, picture: { mediaId }, title, tags }",
   "predefined": [
     ["Mitgliedertreffen", {
