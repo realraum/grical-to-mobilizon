@@ -1,7 +1,7 @@
 import { request } from 'graphql-request'
 // Format for creds.json: { email: '...', password: '...' }
-import Creds from './creds.json' assert { type: "json" }
-import Config from './config.json' assert { type: "json" }
+import Creds from './creds.json' with { type: "json" }
+import Config from './config.json' with { type: "json" }
 import { Login } from './mobilizon.graphql'
 import { writeFile } from 'fs/promises'
 

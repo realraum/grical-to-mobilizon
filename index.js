@@ -5,7 +5,7 @@ import { getEvents, addOrModify, updateImage } from './mob.js'
 import showdown from 'showdown'
 import { DateTime } from 'luxon'
 
-import Config from './config.json' assert { type: "json" }
+import Config from './config.json' with { type: "json" }
 
 import { JSDOM } from 'jsdom'
 import jQuery from 'jquery'

@@ -16,8 +16,8 @@
     "showdown": "^2.1.0"
   },
   "scripts": {
-    "start": "node --experimental-loader node-esm-loader index.js",
-    "new-session": "node --experimental-loader node-esm-loader new-session.js",
+    "start": "node --experimental-json-modules --experimental-loader node-esm-loader index.js",
+    "new-session": "node --experimental-json-modules --experimental-loader node-esm-loader new-session.js",
     "dev": "SSLKEYLOGFILE=/tmp/keylog.txt nodemon --tls-keylog=/tmp/keylog.txt --experimental-loader node-esm-loader -i session.json index.js"
   },
   "devDependencies": {
