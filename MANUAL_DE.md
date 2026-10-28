@@ -1,23 +1,22 @@
-# grical->mobilizion Sync
+# lauti->mobilizion Sync
 
-Der grical->mobilizion Sync synchronisiert alle Ereignisse die auf der realraum.at Website bzw unter https://r3.at/events.ical verfügbar sind auf die entsprechenden Mobilizon Gruppen (@realraum, @funkfeuer)
+Der lauti->mobilizion Sync synchronisiert alle Ereignisse die im realraum Calendar unter https://laut.realraum.at verfügbar sind auf die entsprechenden Mobilizon Gruppen (@realraum, @funkfeuer)
+
+Die Quelle ist der ICS-Export von lauti (standardmäßig https://laut.realraum.at/ical). Die URL kann in der `config.json` unter `lauti` geändert oder als Argument übergeben werden: `pnpm start https://laut.realraum.at/ical`
 
 # FAQ
 
 ## Mein Event ist nicht auf der Webseite
 
-Das Event muss in der Grical-Gruppe !r3 sein
+Das Event muss im realraum Calendar (lauti) eingetragen sein.
 
-Events können von angemeldeten Nutzern in Grical-Gruppen hinzugefügt. Davor muss der Nutzer Mitglied der Gruppe sein. Bei Fragen an xro wenden.
+Events können von angemeldeten Nutzern in lauti-Gruppen hinzugefügt werden. Davor muss der Nutzer Mitglied der Gruppe sein. Bei Fragen an xro wenden.
 
 ## Wie mache ich ein Banner?
 
-Ein Banner kann auf zwei Wege hinzugefügt werden:
+Das am Event in lauti angehängte Bild (die Event-Grafik) wird automatisch als Banner verwendet. Hängt kein Bild am Event, wird das Default-Bild aus der `config.json` (`defaultPicture`) verwendet.
 
-- URL namens `img` mit dem URL zum Bild
-- Text in der Beschreibung `#banner=URL`
-
-Bitte beachte: Der Link muss direkt zum Bild führen und nicht bspws. zu einer Webseite die das Bild anzeigt
+Bitte beachte: Das Bild muss direkt am lauti-Event hängen und nicht bloß in der Beschreibung verlinkt sein.
 
 ## Vorlagen für Typische Events
 
@@ -30,7 +29,6 @@ Eine Vorlage ist folgendermaßen definiert
   "summary": "Alternative beschreibung nur für mobilizion",
   "picture": { "mediaId": "id vom bild das verwendet werden soll" },
   "picture": null, // entfernt default bild
-  "banner": "url", // verwendet url als banner
   "title": "Alternativer titel nur für mobilizon",
   "tags": ["alternative tags", "nur für mobilizion"],
 }]
@@ -44,8 +42,6 @@ Mit `#key=value` können gewisse Parameter gesetzt werden
 
 `#organizer=mobilizion gruppen name`: Erstellt/Verschiebt event in angegebene mobilizion gruppe
 
-`#banner=URL`: Benutzt diesen URL als banner
-
 ## Mein Event ist nicht auf Mobilizon
 
 - Ist das Event auf der Webseite? Nein: Siehe erster punkt
@@ -56,4 +52,4 @@ Falls das Event doch auf der Webseite ist, kann es sein das noch nicht synchroni
 
 Der Bot wird aktuell über den Bot-Account @grical_realraum_at betrieben, daher kann er nur in Gruppen posten auf die @grical_realraum_at zugriff hat und Moderator ist. Ebenfalls müssen diese in der config.json eingetragen sein.
 
-Bei eigenen bannern: Ob das richtige banner verwendet wird, wird über den Dateinamen geprüft. D.h. wenn das banner vorher `https://website.com/image.php?photo=3` und nachher `https://website.com/image.php?photo=4` war, kann der bot das nicht unterscheiden, da beide Dateinamen `image.php` sind.
+Ob das richtige Bild verwendet wird, wird über den Dateinamen geprüft. Bei lauti-Bildern ist der Dateiname der Media-Hash, daher funktioniert die Prüfung zuverlässig.

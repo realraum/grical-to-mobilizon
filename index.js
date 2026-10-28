@@ -8,12 +8,12 @@ import { DateTime } from 'luxon'
 import Config from './config.json' with { type: "json" }
 
 import { JSDOM } from 'jsdom'
-import jQuery from 'jquery'
 import { basename } from 'path'
 
 const mdConverter = new showdown.Converter()
 
-const req = await fetch(Config.grical)
+const sourceUrl = process.argv[2] || Config.lauti
+const req = await fetch(sourceUrl)
 const res = await req.text()
 const events = parse(res)[2]
 
@@ -37,12 +37,12 @@ for (const username of Config.usernames) {
   eventsMob.push(...res.group.organizedEvents.elements)
 }
 
-const gricalToMob = {}
+const lautiToMob = {}
 const mobById = {}
 
 for (const event of eventsMob) {
-  if (event.onlineAddress && event.onlineAddress.includes('grical')) {
-    gricalToMob[event.onlineAddress] = event.id
+  if (event.onlineAddress && event.onlineAddress.includes('laut.realraum.at')) {
+    lautiToMob[event.onlineAddress] = event.id
     mobById[event.id] = event
   }
 }
@@ -83,7 +83,6 @@ for (const [, event] of events) {
       endsOn = DateTime.fromJSDate(new Date(endsOn)).endOf('day').toString()
     }
 
-    const gricalUrl = getVal(event, 'url')
     const tags = (getKey(event, 'categories') || []).slice(3)
 
     const title = getVal(event, 'summary')
@@ -104,7 +103,7 @@ for (const [, event] of events) {
       addressID: Config.addressID,
       beginsOn,
       endsOn,
-      gricalUrl,
+      eventUrl: url,
       title,
       tags,
       summary,
@@ -119,41 +118,35 @@ for (const [, event] of events) {
 
     Object.assign(eventData, extraMeta)
 
-    let customBanner
+    // The attached image URL appears in these tags on the lauti event page:
+    //   //meta[@property="og:image"]/@content
+    //   //meta[@name="twitter:image"]/@content
+    //   //img[@class="image" and @itemprop="image"]/@src
+    // The meta tags always exist and fall back to the realraum logo, so the
+    // <img class="image"> element is the reliable indicator of an attached image.
+    const lautiHTML = await (await fetch(url)).text()
+    const lautiDOM = new JSDOM(lautiHTML)
+    const lautiDoc = lautiDOM.window.document
+    const imageSrc = lautiDoc.evaluate(
+      '//img[@class="image" and @itemprop="image"]/@src',
+      lautiDoc, null,
+      lautiDOM.window.XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue?.value
 
-    const gricalHTML = await(await fetch(gricalUrl)).text()
-    const gricalDOM = new JSDOM(gricalHTML)
-    const $ = jQuery(gricalDOM.window)
-    const gricalURLs = $('.urls').find('a').toArray().map(url => {
-      if ($(url).text() == 'img') {
-        customBanner = url.href
-        return
-      }
-
-      return url
-    }).filter(Boolean)
-
-    if (gricalURLs.length) {
-      eventData.summary += '<h2>Links</h2><ul>'
-      for (const url of gricalURLs) {
-        eventData.summary += '<li>' + url.outerHTML + '</li>'
-      }
-      eventData.summary += '</ul>'
-    }
+    const imageUrl = imageSrc && new URL(imageSrc, url).href
 
     eventData.organizer = username2id[eventData.organizer]
 
-    if (eventData.banner) {
-      customBanner = eventData.banner
-      delete eventData.banner
-    }
+    // #banner=... is no longer supported; drop it so it is neither rendered nor sent.
+    delete eventData.banner
 
-    const bannerName = customBanner && basename(new URL(customBanner).pathname)
+    const imageName = imageUrl && basename(new URL(imageUrl).pathname)
 
-    if (customBanner) {
-      if (gricalToMob[url] && mobById[gricalToMob[url]].picture && mobById[gricalToMob[url]].picture.name === bannerName) {
+    if (imageUrl) {
+      if (lautiToMob[url] && mobById[lautiToMob[url]].picture && mobById[lautiToMob[url]].picture.name === imageName) {
         // nothing todo, keep picture
-        eventData.picture = { mediaId: mobById[gricalToMob[url]].picture.id }
+        eventData.picture = { mediaId: mobById[lautiToMob[url]].picture.id }
       } else {
         // remove existing to prevent mobilizion bug from replacing all pictures with same instance
         eventData.picture = null
@@ -162,18 +155,18 @@ for (const [, event] of events) {
 
     console.log('mobi: %o', eventData)
 
-    const res = await addOrModify(gricalToMob[url], eventData)
+    const res = await addOrModify(lautiToMob[url], eventData)
 
     console.log(res)
 
     const id = res[Object.keys(res)[0]].id
 
-    if (customBanner && !eventData.picture) {
+    if (imageUrl && !eventData.picture) {
       // upload image, add mediaId
-      const bannerName = basename(new URL(customBanner).pathname)
-      console.log('uploading banner on %o: %o from %o', id, bannerName, customBanner)
-      const blob = await(await fetch(customBanner)).blob()
-      console.log(await updateImage(blob, bannerName, customBanner, id))
+      const imageName = basename(new URL(imageUrl).pathname)
+      console.log('uploading banner on %o: %o from %o', id, imageName, imageUrl)
+      const blob = await(await fetch(imageUrl)).blob()
+      console.log(await updateImage(blob, imageName, imageUrl, id))
     }
   }
 }
