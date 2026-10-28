@@ -1,23 +1,25 @@
-# grical->mobilizion Sync
+# lauti->mobilizion Sync
 
-Der grical->mobilizion Sync synchronisiert alle Ereignisse die auf der realraum.at Website bzw unter https://r3.at/events.ical verfügbar sind auf die entsprechenden Mobilizon Gruppen (@realraum, @funkfeuer)
+Der lauti->mobilizion Sync synchronisiert alle Ereignisse die im realraum Calendar unter https://laut.realraum.at verfügbar sind auf die entsprechenden Mobilizon Gruppen (@realraum, @funkfeuer)
+ (dafür muss der Bot Mitglieder dieser Gruppen auf Mobilizon sein)
+
+Die Quelle ist der ICS-Export des realraum Calendar (in der `config.json` unter `lauti`). Die URL kann in der `config.json` geändert oder als Argument übergeben werden: `pnpm start https://laut.realraum.at/groups/80217d4a-1ca5-490e-a8dd-1439b1d92145/ical`
+
+(Anm.: es sollten nur die public events auf Mobilizon gespiegelt werden.)
 
 # FAQ
 
 ## Mein Event ist nicht auf der Webseite
 
-Das Event muss in der Grical-Gruppe !r3 sein
+Das Event muss im realraum Calendar (lauti) eingetragen sein.
 
-Events können von angemeldeten Nutzern in Grical-Gruppen hinzugefügt. Davor muss der Nutzer Mitglied der Gruppe sein. Bei Fragen an xro wenden.
+Events können von angemeldeten Nutzern in lauti-Gruppen hinzugefügt werden. Davor muss der Nutzer Mitglied der Gruppe sein. Bei Fragen an das NOC oder Vorstand wenden.
 
 ## Wie mache ich ein Banner?
 
-Ein Banner kann auf zwei Wege hinzugefügt werden:
+Das am Event in lauti angehängte Bild (die Event-Grafik) wird automatisch als Banner verwendet. Hängt kein Bild am Event, wird das Default-Bild aus der `config.json` (`defaultPicture`) verwendet.
 
-- URL namens `img` mit dem URL zum Bild
-- Text in der Beschreibung `#banner=URL`
-
-Bitte beachte: Der Link muss direkt zum Bild führen und nicht bspws. zu einer Webseite die das Bild anzeigt
+Bitte beachte: Das Bild muss direkt am lauti-Event hängen und nicht bloß in der Beschreibung verlinkt sein.
 
 ## Vorlagen für Typische Events
 
@@ -30,7 +32,6 @@ Eine Vorlage ist folgendermaßen definiert
   "summary": "Alternative beschreibung nur für mobilizion",
   "picture": { "mediaId": "id vom bild das verwendet werden soll" },
   "picture": null, // entfernt default bild
-  "banner": "url", // verwendet url als banner
   "title": "Alternativer titel nur für mobilizon",
   "tags": ["alternative tags", "nur für mobilizion"],
 }]
@@ -38,22 +39,54 @@ Eine Vorlage ist folgendermaßen definiert
 
 Jeder key ist optional
 
+## Tags
+
+Die lauti-Kategorien (auf der lauti-Webseite unter „Was:“ sichtbar) sowie die dort separat angezeigten Hashtags (z.B. `#freiraumfest`) werden als Mobilizon-Tags übernommen. Mehrere Kategorien sind in lauti durch Kommas getrennt; aus `r3,treffen` werden also die Tags `r3` und `treffen`. Doppelte Tags werden zusammengeführt.
+
+In einer Vorlage kann `tags` gesetzt werden; diese Tags werden zu den lauti-Tags hinzugefügt (Duplikate werden zusammengeführt).
+
 ## Optionen für einzelne Events
 
 Mit `#key=value` können gewisse Parameter gesetzt werden
 
 `#organizer=mobilizion gruppen name`: Erstellt/Verschiebt event in angegebene mobilizion gruppe
 
-`#banner=URL`: Benutzt diesen URL als banner
+## Maximale Vorlaufzeit
+
+Mit `maxFutureDuration` in der `config.json` kann begrenzt werden, wie weit in der Zukunft Events veröffentlicht werden. Standardmäßig werden Events, die mehr als 4 Monate in der Zukunft liegen, nicht auf Mobilizon veröffentlicht:
+
+```json
+"maxFutureDuration": { "months": 4 }
+```
+
+Der Wert ist ein Luxon-Duration-Objekt, z.B. `{ "days": 30 }` oder `{ "months": 6 }`. Wird die Option weggelassen, gibt es keine Begrenzung.
 
 ## Mein Event ist nicht auf Mobilizon
 
 - Ist das Event auf der Webseite? Nein: Siehe erster punkt
 
-Falls das Event doch auf der Webseite ist, kann es sein das noch nicht synchronisiert wurde. Es wird jeweiles jede 6. Stunde synchronisiert, bzw. um 0, 6, 12 und 18 Uhr
+Falls das Event doch auf der Webseite ist, kann es sein das noch nicht synchronisiert wurde.
+
+## Nicht-lauti-Events finden
+
+`pnpm report` listet alle zukünftigen Events der konfigurierten Gruppen, die nicht aus lauti stammen. Zu jedem Event wird der Link zur Event-Seite ausgegeben, wo es bei Bedarf manuell gelöscht werden kann.
+
+Events, die aus lauti stammen (erkennbar an `onlineAddress`), aber deren URL nicht mehr in der aktuellen lauti-ICS-Datei vorkommt, werden als verwaist gemeldet und standardmäßig **nicht** gelöscht. Mit dem Schalter `--autoremove-deleted` werden genau diese verwaisten lauti-Events ohne Rückfrage gelöscht:
+
+```sh
+pnpm report --autoremove-deleted
+```
+
+Das Skript wartet nie auf Benutzereingaben. Nicht-lauti-Events werden immer nur gemeldet und nie gelöscht. Die erkannten lauti-Hosts können in der `config.json` unter `lautiHosts` ergänzt werden.
+
+`pnpm report` meldet außerdem Events, die auf dieselbe lauti-URL zeigen (siehe nächster Abschnitt).
+
+## Doppelte lauti-URLs (Duplikate)
+
+Zeigen mehrere Mobilizon-Events auf dieselbe lauti-URL, wählt der Sync deterministisch jene Kopie mit der kleinsten Event-ID (also das älteste Event) und löscht alle weiteren Kopien. Schlägt das Löschen fehl (z.B. fehlende Berechtigung), wird das gemeldet und beim nächsten Mal erneut versucht.
+
+`pnpm report` listet alle Duplikate mit Event-IDs, Gruppen und Links auf, damit man vor dem nächsten Sync-Lauf sieht, was gelöscht wird.
 
 # Limitationen
 
-Der Bot wird aktuell über den Bot-Account @grical_realraum_at betrieben, daher kann er nur in Gruppen posten auf die @grical_realraum_at zugriff hat und Moderator ist. Ebenfalls müssen diese in der config.json eingetragen sein.
-
-Bei eigenen bannern: Ob das richtige banner verwendet wird, wird über den Dateinamen geprüft. D.h. wenn das banner vorher `https://website.com/image.php?photo=3` und nachher `https://website.com/image.php?photo=4` war, kann der bot das nicht unterscheiden, da beide Dateinamen `image.php` sind.
+Der Bot wird aktuell über den Bot-Account @r3calendarbot betrieben, daher kann er nur in Gruppen posten in denen @r3calendarbot Moderator ist. Ebenfalls müssen diese in der config.json eingetragen sein.

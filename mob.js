@@ -1,7 +1,7 @@
 import { request, GraphQLClient } from 'graphql-request'
 
-import Session from './session.json' assert { type: "json" }
-import Config from './config.json' assert { type: "json" }
+import Session from './session.json' with { type: "json" }
+import Config from './config.json' with { type: "json" }
 import { writeFile } from 'fs/promises'
 
 import { Curl } from 'node-libcurl'
@@ -10,7 +10,7 @@ import { writeFileSync } from 'fs'
 
 const endpoint = Config.mobilizon
 
-import { Refresh, EventList, EventAdd, EventModify, UpdateImage } from './mobilizon.graphql'
+import { Refresh, EventList, EventAdd, EventModify, UpdateImage, DeleteEvent } from './mobilizon.graphql'
 
 const { refreshToken: refresh } = await request(
   endpoint, Refresh,
@@ -40,6 +40,10 @@ export async function addEvent(variables) {
   })
 }
 
+export async function deleteEvent(id) {
+  return await client.request(DeleteEvent, { eventId: id })
+}
+
 export async function modifyEvent(id, param) {
   return await client.request(EventModify, {
     eventId: id,
@@ -52,7 +56,7 @@ export async function addOrModify(idOrNull, param) {
   else return await addEvent(param)
 }
 
-export async function updateImage(blob, name, origURL, eventId) {
+export async function updateImage(blob, name, origURL, eventId, tags) {
   // why not form-data? because it doesn't work. it just creates a 400.
   const curl = new Curl()
   const placeholder = 'p...i...c...t...u...r...e...m.e.d.i.a.file'
@@ -76,7 +80,8 @@ export async function updateImage(blob, name, origURL, eventId) {
         file: placeholder,
         name,
         origURL,
-        eventId
+        eventId,
+        tags: tags || []
       })
     },
     { name: placeholder, file: tmp, type: 'application/octet-stream' },

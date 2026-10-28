@@ -39,7 +39,7 @@ query EventList($username: String! $now: DateTime!) {
           title
         },
         picture {
-          id
+          uuid
           name
         },
         physicalAddress {
@@ -53,7 +53,7 @@ query EventList($username: String! $now: DateTime!) {
   }
 }
 
-mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime, $gricalUrl: String!, $picture: MediaInput, $organizer: ID!, $addressID: ID!) {
+mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime, $eventUrl: String!, $picture: MediaInput, $organizer: ID!, $addressID: ID!) {
   createEvent(
     organizerActorId: $organizerActorId
     title: $title
@@ -61,7 +61,7 @@ mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $t
     tags: $tags
     beginsOn: $beginsOn
     endsOn: $endsOn
-    onlineAddress: $gricalUrl
+    onlineAddress: $eventUrl
     attributedToId: $organizer
     visibility: PUBLIC
     picture: $picture
@@ -73,7 +73,7 @@ mutation EventAdd($organizerActorId: ID!, $title: String!, $summary: String!, $t
   }
 }
 
-mutation EventModify($eventId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime, $gricalUrl: String!, $picture: MediaInput, $organizer: ID!, $addressID: ID!) {
+mutation EventModify($eventId: ID!, $title: String!, $summary: String!, $tags: [String]!, $beginsOn: DateTime!, $endsOn: DateTime, $eventUrl: String!, $picture: MediaInput, $organizer: ID!, $addressID: ID!) {
   updateEvent(
     eventId: $eventId
     title: $title
@@ -81,7 +81,7 @@ mutation EventModify($eventId: ID!, $title: String!, $summary: String!, $tags: [
     tags: $tags
     beginsOn: $beginsOn
     endsOn: $endsOn
-    onlineAddress: $gricalUrl
+    onlineAddress: $eventUrl
     attributedToId: $organizer
     visibility: PUBLIC
     picture: $picture
@@ -99,13 +99,14 @@ mutation UploadImage($file: Upload!, $name: String!, $origURL: String!) {
     alt: $origURL
     file: $file
   ) {
-    id
+    uuid
   }
 }
 
-mutation UpdateImage($eventId: ID!, $file: Upload!, $name: String!) {
+mutation UpdateImage($eventId: ID!, $file: Upload!, $name: String!, $tags: [String]) {
   updateEvent(
     eventId: $eventId
+    tags: $tags
     picture: {
       media: {
         file: $file
@@ -115,8 +116,14 @@ mutation UpdateImage($eventId: ID!, $file: Upload!, $name: String!) {
   ) {
     id
     picture {
-      id
+      uuid
       name
     }
+  }
+}
+
+mutation DeleteEvent($eventId: ID!) {
+  deleteEvent(eventId: $eventId) {
+    id
   }
 }

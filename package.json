@@ -12,12 +12,13 @@
     "jsdom": "^24.1.3",
     "luxon": "^3.7.2",
     "node-esm-loader": "^0.3.0",
-    "node-libcurl": "^3.0.0",
+    "node-libcurl": "^5.1.2",
     "showdown": "^2.1.0"
   },
   "scripts": {
     "start": "node --experimental-json-modules --experimental-loader node-esm-loader index.js",
     "new-session": "node --experimental-json-modules --experimental-loader node-esm-loader new-session.js",
+    "report": "node --experimental-json-modules --experimental-loader node-esm-loader report-foreign-events.js",
     "dev": "SSLKEYLOGFILE=/tmp/keylog.txt nodemon --tls-keylog=/tmp/keylog.txt --experimental-loader node-esm-loader -i session.json index.js"
   },
   "devDependencies": {
