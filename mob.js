@@ -56,7 +56,7 @@ export async function addOrModify(idOrNull, param) {
   else return await addEvent(param)
 }
 
-export async function updateImage(blob, name, origURL, eventId) {
+export async function updateImage(blob, name, origURL, eventId, tags) {
   // why not form-data? because it doesn't work. it just creates a 400.
   const curl = new Curl()
   const placeholder = 'p...i...c...t...u...r...e...m.e.d.i.a.file'
@@ -80,7 +80,8 @@ export async function updateImage(blob, name, origURL, eventId) {
         file: placeholder,
         name,
         origURL,
-        eventId
+        eventId,
+        tags: tags || []
       })
     },
     { name: placeholder, file: tmp, type: 'application/octet-stream' },

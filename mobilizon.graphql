@@ -103,9 +103,10 @@ mutation UploadImage($file: Upload!, $name: String!, $origURL: String!) {
   }
 }
 
-mutation UpdateImage($eventId: ID!, $file: Upload!, $name: String!) {
+mutation UpdateImage($eventId: ID!, $file: Upload!, $name: String!, $tags: [String]) {
   updateEvent(
     eventId: $eventId
+    tags: $tags
     picture: {
       media: {
         file: $file

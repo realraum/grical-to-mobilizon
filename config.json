@@ -8,7 +8,7 @@
   "lauti": "https://r3.at/public_events.ics",
   "lautiHosts": ["laut.realraum.at"],
   "maxFutureDuration": { "months": 4 },
-  "_predefinedHint": "Can contain: { organizer, summary, picture: { mediaUuid }, title, tags }",
+  "_predefinedHint": "Can contain: { organizer, summary, picture: { mediaUuid }, title, tags (added to lauti tags) }",
   "predefined": [
     ["Mitgliedertreffen", {
       "title": "realraum Mitgliedertreffen",

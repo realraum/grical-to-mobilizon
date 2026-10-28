@@ -29,6 +29,63 @@ function getVal(vevent, key) {
   return (val = getKey(vevent, key)) && val[3]
 }
 
+// lauti stores the tags comma separated in the CATEGORIES property, e.g.
+// `CATEGORIES:r3\,treffen`. ical.js exposes that as a single text value
+// ("r3,treffen") instead of one value per tag, so split it ourselves.
+function getTags(vevent) {
+  const tags = []
+
+  for (const kv of vevent) {
+    if (kv[0] !== 'categories') continue
+
+    // jCal property layout: [name, params, type, ...values]
+    for (const value of kv.slice(3)) {
+      for (const tag of String(value).split(',')) {
+        const trimmed = tag.trim()
+        if (trimmed) tags.push(trimmed)
+      }
+    }
+  }
+
+  return tags
+}
+
+// lauti has separate hashtags on the event page that are not exported in the
+// ICS at all. They are rendered as `#tag` links in an .info-tags block, below
+// the category/topic block.
+function getPageTags(doc) {
+  const tags = []
+
+  for (const link of doc.querySelectorAll('.info-tags a[itemprop="keywords"]')) {
+    const text = link.textContent.trim()
+
+    if (!text.startsWith('#')) continue
+
+    const tag = text.slice(1).trim()
+    if (tag) tags.push(tag)
+  }
+
+  return tags
+}
+
+function mergeTags(...lists) {
+  const tags = []
+  const seen = new Set()
+
+  for (const list of lists) {
+    for (const tag of list) {
+      const key = tag.toLowerCase()
+
+      if (seen.has(key)) continue
+
+      seen.add(key)
+      tags.push(tag)
+    }
+  }
+
+  return tags
+}
+
 const eventsMob = []
 const username2id = {}
 
@@ -119,9 +176,7 @@ const maxFuture = Config.maxFutureDuration
 const extraMetaRegex = /#([a-z]+)=([^ ]+)/gmi
 
 for (const [, event] of events) {
-  const categories = getKey(event, 'categories')
   try {
-    // if (categories.indexOf('r3') !== -1) {
     console.log('ical: %O', event)
 
     const url = getVal(event, 'url')
@@ -157,10 +212,31 @@ for (const [, event] of events) {
       endsOn = DateTime.fromJSDate(new Date(endsOn)).endOf('day').toString()
     }
 
-    const tags = (getKey(event, 'categories') || []).slice(3)
-
     const title = getVal(event, 'summary')
     let summary = getVal(event, 'description') || ''
+
+    // Fetch the lauti event page once: it holds both the event hashtags and the
+    // attached image, neither of which is fully available in the ICS export.
+    const lautiHTML = await (await fetch(url)).text()
+    const lautiDOM = new JSDOM(lautiHTML)
+    const lautiDoc = lautiDOM.window.document
+
+    // The attached image URL appears in these tags on the lauti event page:
+    //   //meta[@property="og:image"]/@content
+    //   //meta[@name="twitter:image"]/@content
+    //   //img[@class="image" and @itemprop="image"]/@src
+    // The meta tags always exist and fall back to the realraum logo, so the
+    // <img class="image"> element is the reliable indicator of an attached image.
+    const imageSrc = lautiDoc.evaluate(
+      '//img[@class="image" and @itemprop="image"]/@src',
+      lautiDoc, null,
+      lautiDOM.window.XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue?.value
+
+    const imageUrl = imageSrc && new URL(imageSrc, url).href
+
+    const tags = mergeTags(getTags(event), getPageTags(lautiDoc))
 
     const extraMeta = {}
 
@@ -185,30 +261,18 @@ for (const [, event] of events) {
     }
 
     for (const [regex, predef] of predefined) {
-      if (title.match(regex)) {
-        Object.assign(eventData, predef)
+      if (!title.match(regex)) continue
+
+      const { tags: predefinedTags, ...predefinedRest } = predef
+
+      Object.assign(eventData, predefinedRest)
+
+      if (predefinedTags) {
+        eventData.tags = mergeTags(eventData.tags, predefinedTags)
       }
     }
 
     Object.assign(eventData, extraMeta)
-
-    // The attached image URL appears in these tags on the lauti event page:
-    //   //meta[@property="og:image"]/@content
-    //   //meta[@name="twitter:image"]/@content
-    //   //img[@class="image" and @itemprop="image"]/@src
-    // The meta tags always exist and fall back to the realraum logo, so the
-    // <img class="image"> element is the reliable indicator of an attached image.
-    const lautiHTML = await (await fetch(url)).text()
-    const lautiDOM = new JSDOM(lautiHTML)
-    const lautiDoc = lautiDOM.window.document
-    const imageSrc = lautiDoc.evaluate(
-      '//img[@class="image" and @itemprop="image"]/@src',
-      lautiDoc, null,
-      lautiDOM.window.XPathResult.FIRST_ORDERED_NODE_TYPE,
-      null
-    ).singleNodeValue?.value
-
-    const imageUrl = imageSrc && new URL(imageSrc, url).href
 
     eventData.organizer = username2id[eventData.organizer]
 
@@ -240,7 +304,7 @@ for (const [, event] of events) {
       const imageName = basename(new URL(imageUrl).pathname)
       console.log('uploading banner on %o: %o from %o', id, imageName, imageUrl)
       const blob = await(await fetch(imageUrl)).blob()
-      console.log(await updateImage(blob, imageName, imageUrl, id))
+      console.log(await updateImage(blob, imageName, imageUrl, id, eventData.tags))
     }
   } catch (err) {
     // Keep syncing the remaining events even if one fails (e.g. missing
