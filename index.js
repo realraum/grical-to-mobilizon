@@ -52,6 +52,9 @@ const predefined = Config.predefined.map(([regex, sum]) => {
 })
 
 const now = Date.now()
+const maxFuture = Config.maxFutureDuration
+  ? DateTime.fromMillis(now).plus(Config.maxFutureDuration).toMillis()
+  : Infinity
 
 const extraMetaRegex = /#([a-z]+)=([^ ]+)/gmi
 
@@ -67,6 +70,11 @@ for (const [, event] of events) {
     let endsOn = getVal(event, 'dtend')
 
     if (new Date(beginsOn).getTime() <= now) {
+      continue
+    }
+
+    if (new Date(beginsOn).getTime() > maxFuture) {
+      console.log('skipping far-future event %o (%o)', url, beginsOn)
       continue
     }
 

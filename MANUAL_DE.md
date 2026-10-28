@@ -2,7 +2,7 @@
 
 Der lauti->mobilizion Sync synchronisiert alle Ereignisse die im realraum Calendar unter https://laut.realraum.at verfügbar sind auf die entsprechenden Mobilizon Gruppen (@realraum, @funkfeuer)
 
-Die Quelle ist der ICS-Export von lauti (standardmäßig https://laut.realraum.at/ical). Die URL kann in der `config.json` unter `lauti` geändert oder als Argument übergeben werden: `pnpm start https://laut.realraum.at/ical`
+Die Quelle ist der ICS-Export des realraum Calendar (in der `config.json` unter `lauti`). Die URL kann in der `config.json` geändert oder als Argument übergeben werden: `pnpm start https://laut.realraum.at/ical`
 
 # FAQ
 
@@ -41,6 +41,16 @@ Jeder key ist optional
 Mit `#key=value` können gewisse Parameter gesetzt werden
 
 `#organizer=mobilizion gruppen name`: Erstellt/Verschiebt event in angegebene mobilizion gruppe
+
+## Maximale Vorlaufzeit
+
+Mit `maxFutureDuration` in der `config.json` kann begrenzt werden, wie weit in der Zukunft Events veröffentlicht werden. Standardmäßig werden Events, die mehr als 4 Monate in der Zukunft liegen, nicht auf Mobilizon veröffentlicht:
+
+```json
+"maxFutureDuration": { "months": 4 }
+```
+
+Der Wert ist ein Luxon-Duration-Objekt, z.B. `{ "days": 30 }` oder `{ "months": 6 }`. Wird die Option weggelassen, gibt es keine Begrenzung.
 
 ## Mein Event ist nicht auf Mobilizon
 
