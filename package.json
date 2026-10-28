@@ -18,6 +18,7 @@
   "scripts": {
     "start": "node --experimental-json-modules --experimental-loader node-esm-loader index.js",
     "new-session": "node --experimental-json-modules --experimental-loader node-esm-loader new-session.js",
+    "report": "node --experimental-json-modules --experimental-loader node-esm-loader report-foreign-events.js",
     "dev": "SSLKEYLOGFILE=/tmp/keylog.txt nodemon --tls-keylog=/tmp/keylog.txt --experimental-loader node-esm-loader -i session.json index.js"
   },
   "devDependencies": {

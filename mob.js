@@ -10,7 +10,7 @@ import { writeFileSync } from 'fs'
 
 const endpoint = Config.mobilizon
 
-import { Refresh, EventList, EventAdd, EventModify, UpdateImage } from './mobilizon.graphql'
+import { Refresh, EventList, EventAdd, EventModify, UpdateImage, DeleteEvent } from './mobilizon.graphql'
 
 const { refreshToken: refresh } = await request(
   endpoint, Refresh,
@@ -38,6 +38,10 @@ export async function addEvent(variables) {
     organizerActorId: Session.user.defaultActor.id,
     ...variables
   })
+}
+
+export async function deleteEvent(id) {
+  return await client.request(DeleteEvent, { eventId: id })
 }
 
 export async function modifyEvent(id, param) {

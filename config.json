@@ -6,6 +6,7 @@
   "addressID": "91",
   "mobilizon": "https://events.graz.social/api",
   "lauti": "https://r3.at/public_events.ics",
+  "lautiHosts": ["laut.realraum.at"],
   "maxFutureDuration": { "months": 4 },
   "_predefinedHint": "Can contain: { organizer, summary, picture: { mediaUuid }, title, tags }",
   "predefined": [
