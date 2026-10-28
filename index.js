@@ -1,7 +1,8 @@
 import pkg from 'ical.js';
 const { parse } = pkg;
 
-import { getEvents, addOrModify, updateImage } from './mob.js'
+import { getEvents, addOrModify, updateImage, deleteEvent } from './mob.js'
+import { normalizeUrl, syncLautiHosts } from './url-utils.js'
 import showdown from 'showdown'
 import { DateTime } from 'luxon'
 
@@ -37,13 +38,72 @@ for (const username of Config.usernames) {
   eventsMob.push(...res.group.organizedEvents.elements)
 }
 
-const lautiToMob = {}
+const lautiHosts = syncLautiHosts(Config)
+
+function isLautiEvent(event) {
+  const url = normalizeUrl(event.onlineAddress)
+  if (!url) return false
+
+  return lautiHosts.has(new URL(url).hostname.toLowerCase())
+}
+
+function eventIdNumber(id) {
+  const num = Number(id)
+  return Number.isFinite(num) ? num : Number.MAX_SAFE_INTEGER
+}
+
 const mobById = {}
+const mobByLautiUrl = new Map()
+const seenMobIds = new Set()
 
 for (const event of eventsMob) {
-  if (event.onlineAddress && event.onlineAddress.includes('laut.realraum.at')) {
-    lautiToMob[event.onlineAddress] = event.id
-    mobById[event.id] = event
+  if (seenMobIds.has(event.id)) continue
+  seenMobIds.add(event.id)
+
+  if (!isLautiEvent(event)) continue
+
+  mobById[event.id] = event
+
+  const url = normalizeUrl(event.onlineAddress)
+  const copies = mobByLautiUrl.get(url)
+
+  if (copies) copies.push(event)
+  else mobByLautiUrl.set(url, [event])
+}
+
+// Several mobilizon events may claim the same lauti URL. A plain map would
+// silently keep only the last one (leaving the others stale forever), so pick
+// a winner deterministically and delete the rest.
+//
+// Deterministic winner: the oldest event (lowest id). That is the copy users
+// have interacted with (comments, shares), and its state is rewritten from the
+// ICS anyway.
+const lautiToMob = {}
+
+for (const [url, copies] of mobByLautiUrl) {
+  copies.sort((a, b) => eventIdNumber(a.id) - eventIdNumber(b.id))
+
+  const [keep, ...extras] = copies
+  lautiToMob[url] = keep.id
+
+  if (extras.length === 0) continue
+
+  console.warn(
+    `duplicate lauti URL ${url}: ${copies.length} events; keeping ${keep.id} ${keep.url}, ` +
+    `deleting ${extras.map(extra => extra.id).join(', ')}`
+  )
+
+  for (const extra of extras) {
+    try {
+      await deleteEvent(extra.id)
+      console.log(`deleted duplicate event ${extra.id} ${extra.url}`)
+    } catch (err) {
+      // Keep syncing: the winner is still updated, the extra is retried on the
+      // next run.
+      console.error(
+        `failed to delete duplicate event ${extra.id} ${extra.url}: ${(err && err.message) || err}`
+      )
+    }
   }
 }
 
@@ -65,6 +125,12 @@ for (const [, event] of events) {
     console.log('ical: %O', event)
 
     const url = getVal(event, 'url')
+
+    // Duplicates were already resolved above; this finds the single mobilizon
+    // event (if any) that currently represents this lauti URL.
+    const lautiKey = normalizeUrl(url)
+    const existingMobId = lautiKey ? lautiToMob[lautiKey] : null
+    const existingMob = existingMobId ? mobById[existingMobId] : null
 
     let beginsOn = getVal(event, 'dtstart')
     let endsOn = getVal(event, 'dtend')
@@ -152,9 +218,9 @@ for (const [, event] of events) {
     const imageName = imageUrl && basename(new URL(imageUrl).pathname)
 
     if (imageUrl) {
-      if (lautiToMob[url] && mobById[lautiToMob[url]].picture && mobById[lautiToMob[url]].picture.name === imageName) {
+      if (existingMob && existingMob.picture && existingMob.picture.name === imageName) {
         // nothing todo, keep picture
-        eventData.picture = { mediaUuid: mobById[lautiToMob[url]].picture.uuid }
+        eventData.picture = { mediaUuid: existingMob.picture.uuid }
       } else {
         // remove existing to prevent mobilizion bug from replacing all pictures with same instance
         eventData.picture = null
@@ -163,7 +229,7 @@ for (const [, event] of events) {
 
     console.log('mobi: %o', eventData)
 
-    const res = await addOrModify(lautiToMob[url], eventData)
+    const res = await addOrModify(existingMobId, eventData)
 
     console.log(res)
 

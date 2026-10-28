@@ -2,6 +2,7 @@ import pkg from 'ical.js'
 const { parse } = pkg
 
 import { getEvents, deleteEvent } from './mob.js'
+import { normalizeUrl, syncLautiHosts } from './url-utils.js'
 import { DateTime } from 'luxon'
 import Config from './config.json' with { type: "json" }
 
@@ -14,24 +15,6 @@ function getKey(vevent, key) {
 function getVal(vevent, key) {
   let val
   return (val = getKey(vevent, key)) && val[3]
-}
-
-function normalizeUrl(value) {
-  if (!value) return null
-
-  try {
-    const url = new URL(value.trim())
-    url.hash = ''
-
-    // Treat a trailing slash as equivalent, but keep path/query differences.
-    if (url.pathname !== '/' && url.href.endsWith('/')) {
-      return url.href.slice(0, -1)
-    }
-
-    return url.href
-  } catch {
-    return null
-  }
 }
 
 function formatDate(value) {
@@ -89,12 +72,20 @@ const lautiHosts = new Set([
   ...[...icsUrls].map(url => new URL(url).hostname),
 ].map(host => host.toLowerCase()))
 
+// Hosts the sync manages. Only events on these hosts take part in duplicate
+// detection, because only those are read from and rewritten by index.js.
+const syncHosts = syncLautiHosts(Config)
+
 console.log(`Lauti source: ${sourceUrl}`)
 console.log(`Lauti URLs in ICS: ${icsUrls.size}`)
 console.log(`Autoremove deleted lauti events: ${autoremoveDeleted ? 'yes' : 'no'}\n`)
 
 const kept = []
 const deleted = []
+
+// Fetch every group first: duplicate detection must see all copies, not just
+// the ones inside a single group.
+const groups = []
 
 for (const username of Config.usernames) {
   let result
@@ -106,14 +97,61 @@ for (const username of Config.usernames) {
     continue
   }
 
-  const group = result.group
-
-  if (!group) {
+  if (!result.group) {
     console.error(`Group not found: ${username}`)
     continue
   }
 
-  for (const event of group.organizedEvents.elements) {
+  groups.push({ username, events: result.group.organizedEvents.elements })
+}
+
+function eventPageUrl(event) {
+  return event.url || (event.uuid
+    ? `${new URL(Config.mobilizon).origin}/events/${event.uuid}`
+    : null)
+}
+
+// Copies of the same lauti event, i.e. events sharing the same normalized
+// onlineAddress. The sync keeps the lowest event id and deletes the others.
+const copiesByUrl = new Map()
+
+for (const { username, events } of groups) {
+  for (const event of events) {
+    const url = normalizeUrl(event.onlineAddress)
+    if (!url) continue
+    if (!syncHosts.has(new URL(url).hostname.toLowerCase())) continue
+
+    const copies = copiesByUrl.get(url)
+
+    if (copies) copies.push({ group: username, event })
+    else copiesByUrl.set(url, [{ group: username, event }])
+  }
+}
+
+const duplicates = [...copiesByUrl].filter(([, copies]) => copies.length > 1)
+
+if (duplicates.length === 0) {
+  console.log('No duplicate lauti URLs.\n')
+} else {
+  console.log(`Duplicate lauti URLs (${duplicates.length}):\n`)
+
+  for (const [url, copies] of duplicates) {
+    copies.sort((a, b) => Number(a.event.id) - Number(b.event.id))
+
+    console.log(`  ${url}  (${copies.length} copies; sync keeps the lowest event id)`)
+
+    for (const { group, event } of copies) {
+      console.log(`    ${event.id}  ${formatDate(event.beginsOn)}  ${event.title}`)
+      console.log(`      group:      ${group}`)
+      console.log(`      event page: ${eventPageUrl(event) || '(no URL)'}`)
+    }
+
+    console.log('')
+  }
+}
+
+for (const { username, events } of groups) {
+  for (const event of events) {
     const onlineAddress = event.onlineAddress || null
     const normalizedOnlineAddress = normalizeUrl(onlineAddress)
     const host = normalizedOnlineAddress
@@ -123,7 +161,8 @@ for (const username of Config.usernames) {
     const isInIcs = normalizedOnlineAddress && icsUrls.has(normalizedOnlineAddress)
     const isLauti = isInIcs || (host && lautiHosts.has(host))
 
-    // Event is still present in lauti: the normal sync handles it.
+    // Event is still present in lauti: the normal sync handles it (including
+    // reporting and removing duplicates).
     if (isLauti && isInIcs) continue
 
     const base = {
@@ -131,9 +170,7 @@ for (const username of Config.usernames) {
       group: username,
       title: event.title,
       beginsOn: event.beginsOn,
-      url: event.url || (event.uuid
-        ? `${new URL(Config.mobilizon).origin}/events/${event.uuid}`
-        : null),
+      url: eventPageUrl(event),
       onlineAddress,
     }
 
