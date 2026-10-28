@@ -39,7 +39,7 @@ query EventList($username: String! $now: DateTime!) {
           title
         },
         picture {
-          id
+          uuid
           name
         },
         physicalAddress {
@@ -99,7 +99,7 @@ mutation UploadImage($file: Upload!, $name: String!, $origURL: String!) {
     alt: $origURL
     file: $file
   ) {
-    id
+    uuid
   }
 }
 
@@ -115,7 +115,7 @@ mutation UpdateImage($eventId: ID!, $file: Upload!, $name: String!) {
   ) {
     id
     picture {
-      id
+      uuid
       name
     }
   }

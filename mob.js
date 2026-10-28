@@ -1,7 +1,7 @@
 import { request, GraphQLClient } from 'graphql-request'
 
-import Session from './session.json' assert { type: "json" }
-import Config from './config.json' assert { type: "json" }
+import Session from './session.json' with { type: "json" }
+import Config from './config.json' with { type: "json" }
 import { writeFile } from 'fs/promises'
 
 import { Curl } from 'node-libcurl'

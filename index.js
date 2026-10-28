@@ -60,7 +60,7 @@ const extraMetaRegex = /#([a-z]+)=([^ ]+)/gmi
 
 for (const [, event] of events) {
   const categories = getKey(event, 'categories')
-  if (true) {
+  try {
     // if (categories.indexOf('r3') !== -1) {
     console.log('ical: %O', event)
 
@@ -115,7 +115,7 @@ for (const [, event] of events) {
       title,
       tags,
       summary,
-      picture: { mediaId: Config.defaultPicture }
+      picture: Config.defaultPicture ? { mediaUuid: Config.defaultPicture } : null
     }
 
     for (const [regex, predef] of predefined) {
@@ -154,7 +154,7 @@ for (const [, event] of events) {
     if (imageUrl) {
       if (lautiToMob[url] && mobById[lautiToMob[url]].picture && mobById[lautiToMob[url]].picture.name === imageName) {
         // nothing todo, keep picture
-        eventData.picture = { mediaId: mobById[lautiToMob[url]].picture.id }
+        eventData.picture = { mediaUuid: mobById[lautiToMob[url]].picture.uuid }
       } else {
         // remove existing to prevent mobilizion bug from replacing all pictures with same instance
         eventData.picture = null
@@ -176,5 +176,9 @@ for (const [, event] of events) {
       const blob = await(await fetch(imageUrl)).blob()
       console.log(await updateImage(blob, imageName, imageUrl, id))
     }
+  } catch (err) {
+    // Keep syncing the remaining events even if one fails (e.g. missing
+    // permissions on a group's behalf).
+    console.error('failed to sync event %o: %o', getVal(event, 'summary'), (err && err.message) || err)
   }
 }
